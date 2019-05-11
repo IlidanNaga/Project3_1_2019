@@ -7,13 +7,13 @@ string /* Commentary 3*/ c = "abcd", d, e;
 
 if ("sfksrrnwww"  > "lremssssssssssssss3wa") {
 read(b); write(c);
-a = a + b + 12345;
+l = a + b + 12345;
 /* Commentary 5*/
 } else
 {
 write(a);
 }
-
 }
+
 
 /* Commentary 6* */
