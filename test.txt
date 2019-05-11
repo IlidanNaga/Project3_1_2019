@@ -1,0 +1,19 @@
+program  /* Commentary 2*/
+{
+int a = 12345, b, k;
+string /* Commentary 3*/ c = "abcd", d, e;
+
+/* Commentary 4*/
+
+if ("sfksrrnwww"  > "lremssssssssssssss3wa") {
+read(b); write(c);
+a = a + b + 12345;
+/* Commentary 5*/
+} else
+{
+write(a);
+}
+
+}
+
+/* Commentary 6* */

@@ -1,28 +1,30 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 
 /*
  * what lex is meant to do - just to implement a Lexeme type
  */
 
 enum type_of_lex {
-    Lex_Null,
-    Lex_Program, Lex_LFB, Lex_RFB, Lex_Int, Lex_String,
-    Lex_Assign, Lex_Comma, Lex_Number, Lex_Word, Lex_Semicolon,
-    Lex_Plus, Lex_Minus, Lex_Not, Lex_And, Lex_Or,
-    Lex_Multiply, Lex_Divide, Lex_Bigger, Lex_Less, Lex_Equal,
-    Lex_BE, Lex_LE, Lex_NE, Lex_LB, Lex_RB,
-    Lex_If, Lex_else, Lex_While, Lex_Read, Lex_Write
+    LEX_NULL, LEX_AND, LEX_BEGIN, LEX_BOOL, LEX_DO, LEX_ELSE, LEX_END, LEX_IF, LEX_FALSE, LEX_INT,
+    LEX_STRING, LEX_NOT, LEX_OR, LEX_PROGRAM, LEX_READ, LEX_TRUE, LEX_WHILE, LEX_WRITE,
+    LEX_FIN, LEX_SEMICOLON, LEX_COMMA, LEX_COLON, LEX_ASSIGN, LEX_LPAREN, LEX_RPAREN, LEX_EQ,
+    LEX_LSS, LEX_GTR, LEX_PLUS, LEX_MINUS, LEX_TIMES, LEX_SLASH, LEX_LEQ, LEX_NEQ, LEX_GEQ,
+    LEX_NUM, LEX_STRC, LEX_ID, POLIZ_LABEL, POLIZ_ADDRESS, POLIZ_GO, POLIZ_FGO
 };
+
 
 class Lex {
 private:
     type_of_lex Lex_type;
+    int value;
 public:
-    Lex();
-    Lex(class Lex &);
-
+    Lex(type_of_lex t = LEX_NULL, int v = 0): Lex_type(t), value(v) {}
     type_of_lex show_type();
+    int show_value();
+
+    friend std::ostream& operator<<(std::ostream&, Lex);
 
 };
