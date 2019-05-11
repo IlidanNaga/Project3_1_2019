@@ -57,12 +57,20 @@ private:
     void F();
     void F1();
 
+    void  dec ( type_of_lex type);  //checking is variable is declared just once;
+    void  check_id ();              //checking if identificator (variable) exists in expressinos
+    void  check_op ();              //checking operation build (is it right)
+    void  check_not ();             //checking if not is useable
+    void  eq_type ();               //type equality, must be improved for boolean aswell
+    void  eq_bool ();               //boolean expression check
+    void  check_id_in_read ();      //identificator in read checker
 
 public:
     Scanner reader;
 
     std::stack<int> st_int, st_str, st_bool;
     std::stack<type_of_lex> st_lex;
+    std::vector <Lex> poliz;
 
     Parser(char * file_name);
 };

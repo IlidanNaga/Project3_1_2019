@@ -19,23 +19,27 @@ class Variable {
     bool declare;
     bool assign;
 
-    int int_value;
-    std::string str_value;
-    bool bool_value;
+    int value;
+
 
 public:
 
     Variable();
     Variable(const std::string);
 
-    void set_int(const int val);
-    void set_str(const std::string val);
-    void set_bool(const bool val);
-
     std::string get_name();
-    int get_int();
-    std::string get_str();
-    bool get_bool();
+
+    void put_value(int);
+    int get_value();
+
+    void put_type(type_of_lex);
+    type_of_lex get_type();
+
+    void put_declare();
+    bool get_declare() const;
+
+    void put_assign();
+    bool get_assign() const;
 
 
 };
