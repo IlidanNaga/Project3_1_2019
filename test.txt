@@ -2,15 +2,15 @@ program  /* Commentary 2*/
 {
 int a = 12345, b, k;
 string /* Commentary 3*/ c = "abcd", d, e;
+boolean qwer = true;
 
 /* Commentary 4*/
-
-if ("sfksrrnwww"  > "lremssssssssssssss3wa") {
-read(b); write(c);
-l = a + b + 12345;
+if (not qwer) {
+read(b); write(a);
 /* Commentary 5*/
 } else
 {
+c = c + "qwe";
 write(a);
 }
 }

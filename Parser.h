@@ -19,8 +19,6 @@ private:
     void get_lex();
     int iter;
 
-    int max_ident;
-
     void analyzis();
 
     void Start();
@@ -52,23 +50,23 @@ private:
     void E4();
 
     void T();
-    void T1();
 
     void F();
-    void F1();
 
-    void  dec ( type_of_lex type);  //checking is variable is declared just once;
-    void  check_id ();              //checking if identificator (variable) exists in expressinos
-    void  check_op ();              //checking operation build (is it right)
-    void  check_not ();             //checking if not is useable
-    void  eq_type ();               //type equality, must be improved for boolean aswell
-    void  eq_bool ();               //boolean expression check
-    void  check_id_in_read ();      //identificator in read checker
+    void  check_id();              //checking if identificator (variable) exists in expressinos
+    void  check_op();              //checking operation build (is it right)
+    void  check_not();             //checking if not is useable
+    void  eq_type();               //type equality, must be improved for boolean aswell
+    void  eq_bool();               //boolean expression check
+    void  check_id_in_read();      //identificator in read checker
+
+    void declare(int, type_of_lex);//declaration of lexemes
 
 public:
     Scanner reader;
 
-    std::stack<int> st_int, st_str, st_bool;
+    std::vector<int> st_int, st_str, st_bool; //vectors consisting id numbers for each type of variables
+    std::vector<int> st_var; //vector containing id numbers of all of the variables
     std::stack<type_of_lex> st_lex;
     std::vector <Lex> poliz;
 

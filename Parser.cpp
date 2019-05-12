@@ -5,7 +5,6 @@ Parser::Parser(char * file_name) {
     reader.build_table();
     std::cout << std::endl;
     iter = 0;
-    max_ident = -1;
     analyzis();
 }
 
@@ -13,7 +12,7 @@ void Parser::analyzis() {
     Start();
     if (curr_type != LEX_FIN)
         throw curr_lex;
-    std::cout << "First part of syntaxis analyzis completed" << std::endl;
+    std::cout << "Part of syntaxis analyzis completed" << std::endl;
 }
 
 void Parser::get_lex() {
@@ -73,9 +72,7 @@ void Parser::V() {
 
 void Parser::I() {
     if (curr_type == LEX_ID) {
-        if (curr_lex.show_value() > max_ident)
-            max_ident = curr_lex.show_value();
-        st_int.push(curr_val);
+        declare(curr_val, LEX_INT);
         get_lex();
         I1();
     } else {
@@ -122,9 +119,7 @@ void Parser::I3() {
 
 void Parser::S() {
     if (curr_type == LEX_ID) {
-        if (curr_lex.show_value() > max_ident)
-            max_ident = curr_lex.show_value();
-        st_str.push(curr_val);
+        declare(curr_val, LEX_STRING);
         get_lex();
         S1();
     } else {
@@ -160,9 +155,7 @@ void Parser::S2() {
 
 void Parser::B() {
     if (curr_type == LEX_ID) {
-        if (curr_lex.show_value() > max_ident)
-            max_ident = curr_lex.show_value();
-        st_bool.push(curr_val);
+        declare(curr_val, LEX_BOOL);
         get_lex();
         B1();
     } else {
@@ -209,11 +202,12 @@ void Parser::C() {
 }
 
 void Parser::D() {
-    if (curr_type == LEX_READ) {
+    if (curr_type == LEX_READ) {  // working totaly ok
         get_lex();
         if (curr_type == LEX_LPAREN) {
             get_lex();
             if (curr_type == LEX_ID) {
+                check_id_in_read();
                 get_lex();
             }
             else
@@ -230,6 +224,7 @@ void Parser::D() {
     else if (curr_type == LEX_IF) {
         get_lex();
         E0();
+        eq_bool();
         D();
         if (curr_type == LEX_ELSE) {
             get_lex();
@@ -239,6 +234,7 @@ void Parser::D() {
     else if (curr_type == LEX_WHILE) {
         get_lex();
         E0();
+        eq_bool();
         D();
     }
     else if (curr_type == LEX_WRITE) {
@@ -257,10 +253,12 @@ void Parser::D() {
         }
     }
     else if (curr_type == LEX_ID) {
+        check_id();
         get_lex();
         if (curr_type == LEX_ASSIGN) {
             get_lex();
             E0();
+            eq_type();
         } else
             throw curr_lex;
     }
@@ -309,6 +307,7 @@ void Parser::E3() {
         st_lex.push(curr_type);
         get_lex();
         E4();
+        check_op();
     }
 }
 
@@ -318,6 +317,7 @@ void Parser::E4() {
         st_lex.push(curr_type);
         get_lex();
         T();
+        check_op();
     }
 }
 
@@ -327,11 +327,13 @@ void Parser::T() {
         st_lex.push(curr_type);
         get_lex();
         F();
+        check_op();
     }
 }
 
 void Parser::F() {
     if (curr_type == LEX_ID) {
+        check_id();
         get_lex();
     }
     else if (curr_type == LEX_NUM) {
@@ -345,6 +347,7 @@ void Parser::F() {
     else if (curr_type == LEX_NOT) {
         get_lex();
         F();
+        check_not();
     }
     else if (curr_type == LEX_LPAREN) {
         get_lex();
@@ -358,29 +361,15 @@ void Parser::F() {
         throw curr_lex;
 }
 
-void Parser::dec ( type_of_lex type ) {
-    int i;
-    while ( !st_int.empty()) {
-        i = st_int.top();
-        st_int.pop();
-        if ( reader.Var_table[i].get_declare() )
-            throw "Variable declared twice";
-        else {
-            reader.Var_table[i].put_declare();
-            reader.Var_table[i].put_type(type);
-        }
-    }
-}
-
 void Parser::check_id () {
     if ( reader.Var_table[curr_val].get_declare() )
-        st_lex.push ( reader.Var_table[curr_val].get_type() );
+        st_lex.push ( reader.Var_table[curr_val].get_type());
     else
-        throw "not declared";
+        throw "variable is not declared";
 }
 
 void Parser::check_op () {
-    type_of_lex t1, t2, op, t = LEX_INT, r = LEX_BOOL;
+    type_of_lex t1, t2, op;
 
     t2 = st_lex.top();
     st_lex.pop();
@@ -388,14 +377,38 @@ void Parser::check_op () {
     st_lex.pop();
     t1 = st_lex.top();
     st_lex.pop();
-    if (op == LEX_PLUS || op == LEX_MINUS || op == LEX_TIMES || op == LEX_SLASH)
-        r = LEX_INT;
-    if (op == LEX_OR || op == LEX_AND)
-        t = LEX_BOOL;
-    if (t1 == t2  &&  t1 == t)
-        st_lex.push(r);
-    else
-        throw "wrong types are in operation";
+
+    if (op == LEX_PLUS && (t1 == t2)) {
+        if (t1 == LEX_INT || t1 == LEX_STRING)
+            st_lex.push(t1);
+        else
+            throw "Unexpected types in operation +";
+    } else if (op == LEX_PLUS) {
+        throw "Wrong types in operation +";
+    }
+
+    if (op == LEX_MINUS || op == LEX_TIMES || op == LEX_SLASH) {
+        if (t1 == t2 && t1 == LEX_INT)
+            st_lex.push(t1);
+        else
+            throw "Wrong types in operations -, *, /";
+    }
+
+    if (op == LEX_OR || op == LEX_AND) {
+        if (t1 == t2 && t1 == LEX_BOOL)
+            st_lex.push(t1);
+        else
+            throw "Wrong types in logic and, or";
+    }
+
+    if (op == LEX_EQ || op == LEX_LSS || op == LEX_GTR ||
+        op == LEX_LEQ || op == LEX_GEQ || op == LEX_NEQ) {
+        if (t1 == t2 && (t1 == LEX_INT || t1 == LEX_STRING || t1 == LEX_BOOL)) {
+            st_lex.push(LEX_BOOL);
+        } else
+            throw "Non-equal types in boolean expression";
+    }
+
     poliz.push_back (Lex (op) );
 }
 
@@ -409,6 +422,7 @@ void Parser::check_not () {
 void Parser::eq_type () {
     type_of_lex t = st_lex.top();
     st_lex.pop();
+
     if ( t != st_lex.top())
         throw "wrong types are in :=";
     st_lex.pop();
@@ -421,6 +435,37 @@ void Parser::eq_bool () {
 }
 
 void Parser::check_id_in_read () {
-    if ( !reader.Var_table [curr_val].get_declare() )
+    if (!reader.Var_table[curr_val].get_declare())
         throw "not declared";
+}
+
+void Parser::declare(int ident, type_of_lex variant) {
+    int i;
+    for (i = 0; i < st_var.size(); i++) {
+        if (st_var[i] == ident)
+            break;
+    }
+
+    if (i == st_var.size()) {
+        st_var.push_back(ident);
+        reader.Var_table[ident].put_declare();
+    } else
+        throw "Second declare of variable";
+
+    switch (variant) {
+        case LEX_INT:
+            st_int.push_back(ident);
+            reader.Var_table[ident].put_type(LEX_INT);
+            break;
+        case LEX_STRING:
+            st_str.push_back(ident);
+            reader.Var_table[ident].put_type(LEX_STRING);
+            break;
+        case LEX_BOOL:
+            st_bool.push_back(ident);
+            reader.Var_table[ident].put_type(LEX_BOOL);
+            break;
+        default:
+            throw "Unexpected variable type";
+    }
 }
