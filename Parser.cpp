@@ -1,5 +1,14 @@
 #include "Parser.h"
 
+Parser::Parser() {
+    iter = 0;
+}
+
+void Parser::set_file(char * file_name) {
+    reader.set_file(file_name);
+    reader.build_table();
+    std::cout << std::endl;
+}
 
 Parser::Parser(char * file_name) {
     reader.set_file(file_name);
@@ -74,8 +83,7 @@ void Parser::V() {
 void Parser::I() {
     if (curr_type == LEX_ID) {
         declare(curr_val, LEX_INT);
-        poliz.push_back(Lex(POLIZ_ADDRESS));
-        poliz.push_back(curr_lex);
+        poliz.push_back(Lex(POLIZ_ADDRESS, curr_val));
         get_lex();
         I1();
     } else {
@@ -88,7 +96,6 @@ void Parser::I1() {
         I2();
         poliz.push_back(Lex(LEX_ASSIGN));
     } else {
-        poliz.pop_back();
         poliz.pop_back();
         I3();
     }
@@ -135,8 +142,7 @@ void Parser::I3() {
 void Parser::S() {
     if (curr_type == LEX_ID) {
         declare(curr_val, LEX_STRING);
-        poliz.push_back(Lex(POLIZ_ADDRESS));
-        poliz.push_back(curr_lex);
+        poliz.push_back(Lex(POLIZ_ADDRESS, curr_val));
         get_lex();
         S1();
     } else {
@@ -156,7 +162,6 @@ void Parser::S1() {
         poliz.push_back(Lex(LEX_ASSIGN));
     } else {
         poliz.pop_back();
-        poliz.pop_back();
         S2();
     }
 }
@@ -175,8 +180,7 @@ void Parser::S2() {
 void Parser::B() {
     if (curr_type == LEX_ID) {
         declare(curr_val, LEX_BOOL);
-        poliz.push_back(Lex(POLIZ_ADDRESS));
-        poliz.push_back(curr_lex);
+        poliz.push_back(Lex(POLIZ_ADDRESS, curr_val));
         get_lex();
         B1();
     } else {
@@ -189,7 +193,6 @@ void Parser::B1() {
         B2();
         poliz.push_back(Lex(LEX_ASSIGN));
     } else {
-        poliz.pop_back();
         poliz.pop_back();
         B3();
     }
@@ -224,12 +227,15 @@ void Parser::C() {
 }
 //command function
 void Parser::D() {
-    if (curr_type == LEX_READ) {  // working totaly ok
+    int p0, p1, p2, p3;
+
+    if (curr_type == LEX_READ) {
         get_lex();
         if (curr_type == LEX_LPAREN) {
             get_lex();
             if (curr_type == LEX_ID) {
                 check_id_in_read();
+                poliz.push_back(Lex(POLIZ_ADDRESS, curr_val));
                 get_lex();
             }
             else
@@ -237,6 +243,7 @@ void Parser::D() {
 
             if (curr_type == LEX_RPAREN){
                 get_lex();
+                poliz.push_back(Lex(LEX_READ));
             } else
                 throw curr_lex;
         }
@@ -247,17 +254,35 @@ void Parser::D() {
         get_lex();
         E0();
         eq_bool();
+        p2 = (int)poliz.size();
+        poliz.push_back(Lex());
+        poliz.push_back(Lex(POLIZ_FGO));
         D();
+        p3 = (int)poliz.size();
+
+        poliz.push_back(Lex());
+        poliz.push_back(Lex(POLIZ_GO));
+
+        poliz[p2] = Lex(POLIZ_LABEL, (int)poliz.size());
         if (curr_type == LEX_ELSE) {
             get_lex();
             D();
+            poliz[p3] = Lex(POLIZ_LABEL, (int)poliz.size());
         }
     }
     else if (curr_type == LEX_WHILE) {
+        p0 = (int)poliz.size();
         get_lex();
         E0();
         eq_bool();
+        p1 = (int)poliz.size();
+        poliz.push_back(Lex());
+        poliz.push_back(Lex(POLIZ_FGO));
         D();
+        poliz.push_back(Lex(POLIZ_LABEL, p0));
+        poliz.push_back(Lex(POLIZ_GO));
+
+        poliz[p1] = Lex(POLIZ_LABEL, (int)poliz.size());
     }
     else if (curr_type == LEX_WRITE) {
         get_lex();
@@ -270,17 +295,20 @@ void Parser::D() {
             }
             if (curr_type == LEX_RPAREN) {
                 get_lex();
+                poliz.push_back(Lex(LEX_WRITE));
             } else
                 throw curr_lex;
         }
     }
     else if (curr_type == LEX_ID) {
         check_id();
+        poliz.push_back(Lex(POLIZ_ADDRESS, curr_val));
         get_lex();
         if (curr_type == LEX_ASSIGN) {
             get_lex();
             E0();
             eq_type();
+            poliz.push_back(Lex(LEX_ASSIGN));
         } else
             throw curr_lex;
     }
@@ -350,14 +378,27 @@ void Parser::T() {
 void Parser::F() {
     if (curr_type == LEX_ID) {
         check_id();
+        poliz.push_back(Lex(LEX_ID, curr_val));
         get_lex();
     }
     else if (curr_type == LEX_NUM) {
         st_lex.push(LEX_INT);
+        poliz.push_back(curr_lex);
         get_lex();
     }
     else if (curr_type == LEX_STRC) {
         st_lex.push(LEX_STRING);
+        poliz.push_back(curr_lex);
+        get_lex();
+    }
+    else if (curr_type == LEX_TRUE) {
+        st_lex.push(LEX_BOOL);
+        poliz.push_back(Lex(LEX_TRUE));
+        get_lex();
+    }
+    else if (curr_type == LEX_FALSE) {
+        st_lex.push(LEX_BOOL);
+        poliz.push_back(Lex(LEX_FALSE));
         get_lex();
     }
     else if (curr_type == LEX_NOT) {
@@ -377,11 +418,13 @@ void Parser::F() {
         //унарный минус, в поллиз будет закидываться собакой
         get_lex();
         if (curr_type == LEX_NUM || (curr_type == LEX_ID &&
-        reader.Var_table[curr_lex.show_value()].get_type() == LEX_INT))
+        reader.Var_table[curr_lex.show_value()].get_type() == LEX_INT)) {
             st_lex.push(LEX_INT);
-        else
+            poliz.push_back(curr_lex);
+        } else
             throw curr_lex;
         get_lex();
+        poliz.push_back(Lex(LEX_UN_MINUS));
     }
     else
         throw curr_lex;
@@ -435,9 +478,8 @@ void Parser::check_op () {
             st_lex.push(LEX_BOOL);
         } else
             throw "Non-equal types in boolean expression";
-
-
      }
+     poliz.push_back(Lex(op));
 }
 
 void Parser::check_not () {

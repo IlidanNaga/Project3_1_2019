@@ -1,11 +1,11 @@
-#include "Parser.h"
+#include "Interpretator.h"
 
 
 int main() {
 
     try {
-        Parser Initialisation((char*)"test.txt");
-
+        Interpretator Initialisation((char*)"test.txt");
+        Initialisation.launch();
     }
     catch (char c) {
         std::cout << "Unexpected symbol: " << c << std::endl;

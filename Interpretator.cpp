@@ -1,14 +1,21 @@
-/*
+#include "Interpretator.h"
 
-#include "Executer.h"
+Interpretator::Interpretator(char *file_name) {
+    parser.set_file(file_name);
+}
 
-void Executer::execute ( std::vector<Lex> & poliz ) {
+void Interpretator::launch() {
+    parser.analyzis();
+    execute(parser.poliz);
+}
+
+void Interpretator::execute(std::vector<Lex> & poliz ) {
     std::stack < int > args;
     int i, j, index = 0, size = poliz.size();
     while ( index < size ) {
         pc_el = poliz [ index ];
 
-        switch ( pc_el.show_type()) {
+        switch ( pc_el.show_type () ) {
 
             case LEX_TRUE: case LEX_FALSE: case LEX_NUM: case POLIZ_ADDRESS: case POLIZ_LABEL:
                 args.push ( pc_el.show_value () );
@@ -17,7 +24,7 @@ void Executer::execute ( std::vector<Lex> & poliz ) {
             case LEX_ID:
                 i = pc_el.show_value ();
                 if ( parser.reader.Var_table[i].get_assign () ) {
-                    args.push ( parser.reader.Var_table[i].show_value () );
+                    args.push ( parser.reader.Var_table[i].get_value());
                     break;
                 }
                 else
@@ -62,7 +69,7 @@ void Executer::execute ( std::vector<Lex> & poliz ) {
             case LEX_WRITE:
                 j = args.top();
                 args.pop();
-                cout << j << endl;
+                std::cout << j << std::endl;
                 break;
 
             case LEX_READ:
@@ -70,16 +77,16 @@ void Executer::execute ( std::vector<Lex> & poliz ) {
                 i = args.top ();
                 args.pop();
                 if ( parser.reader.Var_table[i].get_type () == LEX_INT ) {
-                    cout << "Input int value for" << parser.reader.Var_table[i].get_name () << endl;
-                    cin >> k;
+                    std::cout << "Input int value for" << parser.reader.Var_table[i].get_name () << std::endl;
+                    std::cin >> k;
                 }
                 else {
-                    string j;
+                    std::string j;
                     while (1){
-                        cout << "Input boolean value (true or false) for" << parser.reader.Var_table[i].get_name() << endl;
-                        cin >> j;
+                        std::cout << "Input boolean value (true or false) for" << parser.reader.Var_table[i].get_name() << std::endl;
+                        std::cin >> j;
                         if (j != "true" && j != "false"){
-                            cout << "Error in input:true/false" << endl;
+                            std::cout << "Error in input:true/false" << std::endl;
                             continue;
                         }
                         k = (j == "true")? 1 : 0 ;
@@ -188,7 +195,5 @@ void Executer::execute ( std::vector<Lex> & poliz ) {
         }//end of switch
         ++index;
     };//end of while
-    cout << "Finish of executing!!!" << endl;
+    std::cout << "Finish of executing!!!" << std::endl;
 }
-
- */

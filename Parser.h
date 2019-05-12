@@ -19,7 +19,6 @@ private:
     void get_lex();
     int iter;
 
-    void analyzis();
 
     void Start();
     void A();
@@ -59,7 +58,6 @@ private:
     void  eq_type();               //type equality, must be improved for boolean aswell
     void  eq_bool();               //boolean expression check
     void  check_id_in_read();      //identificator in read checker
-    void check_un_minus();
 
     void declare(int, type_of_lex);//declaration of lexemes
 
@@ -72,5 +70,9 @@ public:
 
     std::vector <Lex> poliz;  //vector for poliz, first part of it
 
+    void analyzis();
+    void set_file(char * file_name);
+
+    Parser();
     Parser(char * file_name);
 };

@@ -10,6 +10,7 @@ read(b); write(a);
 /* Commentary 5*/
 } else
 {
+qwer = true == true;
 a = (a + b - 12345)*(-a);
 write(a);
 }
