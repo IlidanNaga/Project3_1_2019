@@ -76,7 +76,7 @@ std::ostream& operator<<(std::ostream &out, Lex l) {
             out << "(LEX_COMMA, " << l.value << ");";
             break;
         case 21:
-            out << "(LEX_COLON, " << l.value << ");";
+            out << "(LEX_UN_MINUS, " << l.value << ");";
             break;
         case 22:
             out << "(LEX_ASSIGN, " << l.value << ");";

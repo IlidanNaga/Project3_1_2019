@@ -59,6 +59,7 @@ private:
     void  eq_type();               //type equality, must be improved for boolean aswell
     void  eq_bool();               //boolean expression check
     void  check_id_in_read();      //identificator in read checker
+    void check_un_minus();
 
     void declare(int, type_of_lex);//declaration of lexemes
 
@@ -68,7 +69,8 @@ public:
     std::vector<int> st_int, st_str, st_bool; //vectors consisting id numbers for each type of variables
     std::vector<int> st_var; //vector containing id numbers of all of the variables
     std::stack<type_of_lex> st_lex;
-    std::vector <Lex> poliz;
+
+    std::vector <Lex> poliz;  //vector for poliz, first part of it
 
     Parser(char * file_name);
 };
