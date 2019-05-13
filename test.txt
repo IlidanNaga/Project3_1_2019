@@ -1,20 +1,21 @@
 program  /* Commentary 2*/
 {
+
 int a = 12345, b, k;
 string /* Commentary 3*/ c = "abcd", d, e;
 boolean qwer = true;
 
+
+
+c = c + "AQWE";
 /* Commentary 4*/
-if (not qwer) {
+if (qwer) {
 read(b); write(a);
+a = (a + b - 12345) * (-a);
 /* Commentary 5*/
 } else
 {
-qwer = true == true;
-a = (a + b - 12345)*(-a);
+qwer = false == true;
 write(a);
 }
 }
-
-
-/* Commentary 6* */

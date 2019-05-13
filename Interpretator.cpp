@@ -4,196 +4,307 @@ Interpretator::Interpretator(char *file_name) {
     parser.set_file(file_name);
 }
 
+int Interpretator::put_TS(const std::string &other) {
+    auto iter = TS.begin();
+    if ((iter = std::find(TS.begin(), TS.end(), other)) != TS.end())
+        return (int)(iter - TS.begin());
+    TS.push_back(other);
+    return (int)(TS.size() - 1);
+}
+
 void Interpretator::launch() {
     parser.analyzis();
+    // Here i finally got bored of transmitting the elements
+    TS = parser.reader.Str_table;
+    TID = parser.reader.Var_table;
     execute(parser.poliz);
 }
 
-void Interpretator::execute(std::vector<Lex> & poliz ) {
-    std::stack < int > args;
-    int i, j, index = 0, size = poliz.size();
-    while ( index < size ) {
-        pc_el = poliz [ index ];
+void Interpretator::print_stack(std::stack<Variable> &st) {
+    if (!st.empty()) {
+        Variable buf = st.top();
+        st.pop();
+        if (st.empty()) {
+            if (buf.get_type() == LEX_STRING || buf.get_type() == LEX_STRC)
+                std::cout << TS[buf.get_value()] << std::endl;
+            else
+                std::cout << buf.get_value() << std::endl;
+        }
+        else {
+            print_stack(st);
+            if (buf.get_type() == LEX_STRING || buf.get_type() == LEX_STRC)
+                std::cout << TS[buf.get_value()] << std::endl;
+            else
+                std::cout << buf.get_value() << std::endl;
+        }
+    }
+}
 
-        switch ( pc_el.show_type () ) {
+void Interpretator::execute(std::vector<Lex> &poliz) {
+    std::stack<Variable> args;
+    Variable a, b;  // reminder:: first operand is ALWAYS b
+    int index = 0;
+    int size = poliz.size();
 
-            case LEX_TRUE: case LEX_FALSE: case LEX_NUM: case POLIZ_ADDRESS: case POLIZ_LABEL:
-                args.push ( pc_el.show_value () );
+    while (index < size) {
+        pc_el = poliz[index];
+        switch(pc_el.show_type()) {
+            case LEX_NUM: case LEX_STRC:
+            case LEX_TRUE: case LEX_FALSE:
+            case POLIZ_ADDRESS: case POLIZ_LABEL:
+                a.put_value(pc_el.show_value());
+                a.put_type(pc_el.show_type());
+
+                args.push(a);
                 break;
 
             case LEX_ID:
-                i = pc_el.show_value ();
-                if ( parser.reader.Var_table[i].get_assign () ) {
-                    args.push ( parser.reader.Var_table[i].get_value());
+                if (TID[pc_el.show_value()].get_assign()) {
+                    args.push(TID[pc_el.show_value()]);
                     break;
                 }
-                else
-                    throw "POLIZ: indefinite identifier";
+                std::cout << index << "   " << pc_el;
+                throw "POLIZ: unknow ID";
 
-            case LEX_NOT:
-                i = args.top();
+            //from now it'll be only operations
+
+            case LEX_ASSIGN:
+
+                a = args.top();
                 args.pop();
-                args.push( !i );
+
+                b = args.top();
+                args.pop();
+
+                if (!args.empty()) // multiple assignment
+                    args.push(a);
+
+                TID[b.get_value()].put_value(a.get_value());
+                TID[b.get_value()].put_assign();
                 break;
 
-            case LEX_OR:
-                i = args.top();
+            case LEX_UN_MINUS:
+                if (args.empty())
+                    throw "Error in POLIZ, UN";
+                a = args.top();
                 args.pop();
-                j = args.top();
+
+                a.put_value(-a.get_value());
+                args.push(a);
+                break;
+            case LEX_UN_PLUS:
+                if (args.empty())
+                    throw "Error in POLIZ, UN";
+                break;
+
+            case LEX_NOT:
+                a = args.top();
                 args.pop();
-                args.push ( j || i );
+
+                a.put_value(!a.get_value());
+                args.push(a);
                 break;
 
             case LEX_AND:
-                i = args.top();
+                a = args.top();
                 args.pop();
-                j = args.top();
+
+                b = args.top();
                 args.pop();
-                args.push ( j && i );
+
+                a.put_value(a.get_value() && b.get_value());
+                args.push(a);
+                break;
+            case LEX_OR:
+                a = args.top();
+                args.pop();
+
+                b = args.top();
+                args.pop();
+
+                a.put_value(a.get_value() || b.get_value());
+                args.push(a);
                 break;
 
             case POLIZ_GO:
-                i = args.top();
+                a = args.top();
                 args.pop();
-                index = i - 1;
+
+                index = a.get_value() - 1;
                 break;
 
             case POLIZ_FGO:
-                i = args.top();
+                a = args.top();
                 args.pop();
-                j = args.top();
+
+                b = args.top();
                 args.pop();
-                if ( !j ) index = i-1;
+
+                if (!b.get_value())
+                    index = a.get_value() - 1;
                 break;
 
             case LEX_WRITE:
-                j = args.top();
-                args.pop();
-                std::cout << j << std::endl;
+                print_stack(args);
+                while (!args.empty())
+                    args.pop();
                 break;
 
             case LEX_READ:
-                int k;
-                i = args.top ();
+                int buf;
+                a = args.top();
                 args.pop();
-                if ( parser.reader.Var_table[i].get_type () == LEX_INT ) {
-                    std::cout << "Input int value for" << parser.reader.Var_table[i].get_name () << std::endl;
-                    std::cin >> k;
+
+                if (TID[a.get_value()].get_type() == LEX_INT) {
+                    std::cout << "Input int value for variable " << TID[a.get_value()].get_name() << std::endl;
+                    std::cin >> buf;
+                } else if (TID[a.get_value()].get_type() == LEX_STRING) {
+                    std::string s;
+                    std::cout << "Input string value for variable " << TID[a.get_value()].get_name() << std::endl;
+                    std::getline(std::cin, s);
+                    buf = put_TS(s);
+                } else {
+                    std::string s;
+                    std::cout << "Input boolean value (true or false) for variable ";
+                    std::cout << TID[a.get_value()].get_name() << std::endl;
+                    std::cin >> s;
+
+                    if (s == "true") {
+                        buf = 1;
+                    } else if (s == "false") {
+                        buf = 0;
+                    } else
+                        throw "POLIZ: Error reading boolean";
                 }
-                else {
-                    std::string j;
-                    while (1){
-                        std::cout << "Input boolean value (true or false) for" << parser.reader.Var_table[i].get_name() << std::endl;
-                        std::cin >> j;
-                        if (j != "true" && j != "false"){
-                            std::cout << "Error in input:true/false" << std::endl;
-                            continue;
-                        }
-                        k = (j == "true")? 1 : 0 ;
-                        break;
-                    }
-                }
-                parser.reader.Var_table[i].put_value (k);
-                parser.reader.Var_table[i].put_assign ();
+                TID[a.get_value()].put_value(buf);
+                TID[a.get_value()].put_assign();
                 break;
 
             case LEX_PLUS:
-                i = args.top();
-                args.pop();
-                j = args.top();
-                args.pop();
-                args.push ( i + j );
-                break;
 
-            case LEX_TIMES:
-                i = args.top();
+                a = args.top();
                 args.pop();
-                j = args.top();
+
+                b = args.top();
                 args.pop();
-                args.push ( i * j );
+
+                if (a.get_type() == LEX_STRING || a.get_type() == LEX_STRC)
+                    a.put_value(put_TS(TS[b.get_value()] + TS[a.get_value()]));
+                else
+                    a.put_value(b.get_value() + a.get_value());
+                args.push(a);
                 break;
 
             case LEX_MINUS:
-                i = args.top();
+            case LEX_TIMES:
+            case LEX_SLASH:
+
+                a = args.top();
                 args.pop();
-                j = args.top();
+
+                b = args.top();
                 args.pop();
-                args.push ( j - i );
+
+                if (pc_el.show_type() == LEX_MINUS)
+                    a.put_value(b.get_value() - a.get_value());
+                else if (pc_el.show_type() == LEX_TIMES)
+                    a.put_value(b.get_value() * a.get_value());
+                else {
+                    if (a.get_value()) {
+                        a.put_value(b.get_value() / a.get_value());
+                    } else
+                        throw "POLIZ: Division by 0";
+                }
+                args.push(a);
                 break;
 
-            case LEX_SLASH:
-                i = args.top();
+            case LEX_EQ:
+
+                a = args.top();
                 args.pop();
-                j = args.top();
+                b = args.top();
                 args.pop();
-                if (!i) {
-                    args.push(j / i);
-                    break;
+                if (a.get_type() == LEX_STRING || a.get_type() == LEX_STRC) {
+                    a.put_value(TS[b.get_value()] == TS[a.get_value()]);
+                    if (a.get_value())
+                        a.put_type(LEX_TRUE);
+                    else
+                        a.put_type(LEX_FALSE);
                 }
                 else
-                    throw "POLIZ:divide by zero";
-
-            case LEX_EQ:
-                i = args.top();
-                args.pop();
-                j = args.top();
-                args.pop();
-                args.push ( i == j);
+                    a.put_value(b.get_value() == a.get_value());
+                args.push(a);
                 break;
 
             case LEX_LSS:
-                i = args.top();
+                a = args.top();
                 args.pop();
-                j = args.top();
+                b = args.top();
                 args.pop();
-                args.push ( j < i);
+                if (a.get_type() == LEX_STRING || a.get_type() == LEX_STRC) {
+                    a.put_value(TS[b.get_value()] < TS[a.get_value()]);
+                    if (a.get_value())
+                        a.put_type(LEX_TRUE);
+                    else
+                        a.put_type(LEX_FALSE);
+                }
+                else
+                    a.put_value(b.get_value() < a.get_value());
+                args.push(a);
                 break;
-
             case LEX_GTR:
-                i = args.top();
+                a = args.top();
                 args.pop();
-                j = args.top();
+                b = args.top();
                 args.pop();
-                args.push ( j > i );
+                if (a.get_type() == LEX_STRING || a.get_type() == LEX_STRC) {
+                    a.put_value(TS[b.get_value()] > TS[a.get_value()]);
+                    if (a.get_value())
+                        a.put_type(LEX_TRUE);
+                    else
+                        a.put_type(LEX_FALSE);
+                }
+                else
+                    a.put_value(b.get_value() > a.get_value());
+                args.push(a);
                 break;
-
             case LEX_LEQ:
-                i = args.top();
+                a = args.top();
                 args.pop();
-                j = args.top();
+                b = args.top();
                 args.pop();
-                args.push ( j <= i );
+                a.put_value(b.get_value() <= a.get_value());
+                args.push(a);
                 break;
-
             case LEX_GEQ:
-                i = args.top();
+                a = args.top();
                 args.pop();
-                j = args.top();
+                b = args.top();
                 args.pop();
-                args.push ( j >= i );
+                a.put_value(b.get_value() >= a.get_value());
+                args.push(a);
                 break;
-
             case LEX_NEQ:
-                i = args.top();
+                a = args.top();
                 args.pop();
-                j = args.top();
+                b = args.top();
                 args.pop();
-                args.push ( j != i );
-                break;
-
-            case LEX_ASSIGN:
-                i = args.top();
-                args.pop();
-                j = args.top();
-                args.pop();
-                parser.reader.Var_table[j].put_value(i);
-                parser.reader.Var_table[j].put_assign();
+                if (a.get_type() == LEX_STRING || a.get_type() == LEX_STRC) {
+                    a.put_value(TS[b.get_value()] != TS[a.get_value()]);
+                    if (a.get_value())
+                        a.put_type(LEX_TRUE);
+                    else
+                        a.put_type(LEX_FALSE);
+                }
+                else
+                    a.put_value(b.get_value() != a.get_value());
+                args.push(a);
                 break;
 
             default:
-                throw "POLIZ: unexpected elem";
-        }//end of switch
-        ++index;
-    };//end of while
-    std::cout << "Finish of executing!!!" << std::endl;
+
+                throw "Unexpected element, POLIZ";
+        }
+        index ++;
+    }
 }

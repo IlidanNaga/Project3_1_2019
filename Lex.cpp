@@ -138,6 +138,8 @@ std::ostream& operator<<(std::ostream &out, Lex l) {
         case 41:
             out << "(POLIZ_FGO, " << l.value << ");";
             break;
+        case 42:
+            out << "(LEX_UN_PLUS, " << l.value << ");";
         default:
             throw "unexpected lexeme";
     }

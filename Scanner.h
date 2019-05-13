@@ -25,8 +25,7 @@ private:
     void unget_char(char c);
 
     int look(const std::string &buf, const char **list);
-    int put_var(const std::string &);
-    int put_str(const std::string &);
+
 
 public:
 
@@ -36,6 +35,9 @@ public:
 
     Scanner() {}
     Scanner(char *);
+
+    int put_var(const std::string &);
+    int put_str(const std::string &);
 
     void set_file(char * file_name);
 

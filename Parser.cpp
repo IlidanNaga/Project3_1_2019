@@ -23,6 +23,10 @@ void Parser::analyzis() {
     if (curr_type != LEX_FIN)
         throw curr_lex;
     std::cout << "Part of syntaxis + semantic analyzis completed" << std::endl;
+    for (int i = 0; i < poliz.size(); i++) {
+        std::cout << poliz[i];
+    }
+    std::cout << std::endl;
 }
 
 void Parser::get_lex() {
@@ -199,7 +203,10 @@ void Parser::B1() {
 }
 void Parser::B2() {
     if (curr_type == LEX_TRUE || curr_type == LEX_FALSE) {
-        poliz.push_back(curr_lex);
+        if (curr_type == LEX_TRUE) {
+            poliz.push_back(Lex(LEX_TRUE, 1));
+        } else
+            poliz.push_back(Lex(LEX_FALSE, 0));
         get_lex();
         B3();
     } else {
@@ -393,12 +400,12 @@ void Parser::F() {
     }
     else if (curr_type == LEX_TRUE) {
         st_lex.push(LEX_BOOL);
-        poliz.push_back(Lex(LEX_TRUE));
+        poliz.push_back(Lex(LEX_TRUE, 1));
         get_lex();
     }
     else if (curr_type == LEX_FALSE) {
         st_lex.push(LEX_BOOL);
-        poliz.push_back(Lex(LEX_FALSE));
+        poliz.push_back(Lex(LEX_FALSE, 0));
         get_lex();
     }
     else if (curr_type == LEX_NOT) {
@@ -425,6 +432,18 @@ void Parser::F() {
             throw curr_lex;
         get_lex();
         poliz.push_back(Lex(LEX_UN_MINUS));
+    }
+    else if (curr_type == LEX_PLUS) {
+        get_lex();
+        if (curr_type == LEX_NUM || (curr_type == LEX_ID &&
+        reader.Var_table[curr_lex.show_value()].get_type() == LEX_INT)) {
+            st_lex.push(LEX_INT);
+            poliz.push_back(curr_lex);
+        } else
+            throw curr_lex;
+        get_lex();
+        poliz.push_back(Lex(LEX_UN_PLUS));
+
     }
     else
         throw curr_lex;

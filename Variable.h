@@ -20,6 +20,7 @@ class Variable {
     bool assign;
 
     int value;
+    std::string str_value;
 
 
 public:
@@ -31,6 +32,9 @@ public:
 
     void put_value(int);
     int get_value();
+
+    void put_string(std::string);
+    std::string get_string();
 
     void put_type(type_of_lex);
     type_of_lex get_type();

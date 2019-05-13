@@ -4,6 +4,8 @@ Variable::Variable() {
     declare = false;
     assign = false;
     type = LEX_NULL;
+    value = 0;
+    str_value = "";
 }
 
 Variable::Variable(const std::string s) {
@@ -11,6 +13,8 @@ Variable::Variable(const std::string s) {
     declare = false;
     assign = false;
     type = LEX_NULL;
+    value = 0;
+    str_value = "";
 }
 
 void Variable::put_declare() {
@@ -48,4 +52,12 @@ void Variable::put_value(int i) {
 
 void Variable::put_type(type_of_lex t) {
     type = t;
+}
+
+void Variable::put_string(std::string val) {
+    str_value = val;
+}
+
+std::string Variable::get_string() {
+    return str_value;
 }
