@@ -84,6 +84,8 @@ void Interpretator::execute(std::vector<Lex> &poliz) {
                 break;
 
             case LEX_UN_MINUS:
+                //idk if possible for a situation with 2x un_minus\un_plus... and for sure
+                //not all possible situations of un_minus\un_plus are worked out
                 if (args.empty())
                     throw "Error in POLIZ, UN";
                 a = args.top();

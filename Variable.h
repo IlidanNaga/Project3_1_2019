@@ -4,11 +4,10 @@
 #include <string>
 #include "Lex.h"
 /*
- * variable is declaration of hardcore lexeme version - variable with different data
- * it'll be
- * integer
- * string
- * boolean
+ * variable is declaration of hardcore lexeme version - variable with data pole
+ * for integer variable it'd be just it's value
+ * for boolean - 1 - true, 0 - false
+ * for string - index of it's value into strings' vector
  */
 
 

@@ -6,8 +6,19 @@
 #include <stack>
 
 /*
- * parser is about saving different lexemes into a tables
+ * parser is about syntaxis + semantic analyzis + saving ingredients for POLIZ
+ * syntaxis - checking for grammatics via recursive lowerage
+ * semantic - checking for logic implementation
 */
+
+/*
+ * Как работает полиз:
+ * встречаем операнд - кидаем в стек (ссылку или значение)
+ * встречаем оператор - кидаем в другой стек
+ * встречаем закрывающую скобку - все операнды из второго стека до открывающей
+ * скидываем в первый, открывающую удаляем
+ *
+ */
 
 class Parser {
 private:

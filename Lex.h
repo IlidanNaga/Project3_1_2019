@@ -4,7 +4,7 @@
 #include <fstream>
 
 /*
- * what lex is meant to do - just to implement a Lexeme type
+ * what lex is meant to do - just to implement a Lexeme type, which'll be used as a situation marker
  */
 
 enum type_of_lex {

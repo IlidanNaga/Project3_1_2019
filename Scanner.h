@@ -7,7 +7,7 @@
 
 
 /*
- * what scanner is meant to do - it has to load new lex from file via getlex and put it into a table
+ * what scanner is meant to do - it has to load new lex from file via getlex and put it into a tables
  */
 
 
