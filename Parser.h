@@ -53,11 +53,11 @@ private:
     void C();
     void D();
 
-    void E0();
-    void E1();
-    void E2();
-    void E3();
-    void E4();
+    void L0();
+    void L1();
+    void L2();
+    void L3();
+    void L4();
 
     void T();
 

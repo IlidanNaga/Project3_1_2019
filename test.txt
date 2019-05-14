@@ -1,7 +1,7 @@
 program  /* Commentary 2*/
 {
 
-int a = 12345, b, k;
+int a = 12345, b, k = 9999;
 string /* Commentary 3*/ c = "abcd", d, e;
 boolean qwer = true;
 
@@ -10,12 +10,13 @@ boolean qwer = true;
 c = c + "AQWE";
 /* Commentary 4*/
 if (qwer) {
-read(b); write(a);
-a = (a + b - 12345) * (-a);
+read(b); write("FIRST");
+a = a + b;
+write("SECOND");
+
 /* Commentary 5*/
-} else
-{
-qwer = false == true;
+} else {
 write(a);
 }
+write("THIRD");
 }

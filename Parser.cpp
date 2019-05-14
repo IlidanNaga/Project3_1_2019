@@ -98,7 +98,6 @@ void Parser::I1() {
     if (curr_type == LEX_ASSIGN) {
         get_lex();
         I2();
-        poliz.push_back(Lex(LEX_ASSIGN));
     } else {
         poliz.pop_back();
         I3();
@@ -109,6 +108,7 @@ void Parser::I2() {
         get_lex();
         if (curr_type == LEX_NUM) {
             poliz.push_back(curr_lex);
+            poliz.push_back(Lex(LEX_ASSIGN));
             get_lex();
             I3();
         } else
@@ -119,6 +119,7 @@ void Parser::I2() {
         get_lex();
         if (curr_type == LEX_NUM) {
             poliz.push_back(curr_lex);
+            poliz.push_back(Lex(LEX_ASSIGN));
             get_lex();
             I3();
         } else
@@ -126,6 +127,7 @@ void Parser::I2() {
     }
     else if (curr_type == LEX_NUM) {
         poliz.push_back(curr_lex);
+        poliz.push_back(Lex(LEX_ASSIGN));
         get_lex();
         I3();
     } else
@@ -158,12 +160,12 @@ void Parser::S1() {
         get_lex();
         if (curr_type == LEX_STRC) {
             poliz.push_back(curr_lex);
+            poliz.push_back(Lex(LEX_ASSIGN));
             get_lex();
             S2();
         } else {
             throw curr_lex;
         }
-        poliz.push_back(Lex(LEX_ASSIGN));
     } else {
         poliz.pop_back();
         S2();
@@ -195,7 +197,7 @@ void Parser::B1() {
     if (curr_type == LEX_ASSIGN) {
         get_lex();
         B2();
-        poliz.push_back(Lex(LEX_ASSIGN));
+
     } else {
         poliz.pop_back();
         B3();
@@ -207,6 +209,8 @@ void Parser::B2() {
             poliz.push_back(Lex(LEX_TRUE, 1));
         } else
             poliz.push_back(Lex(LEX_FALSE, 0));
+
+        poliz.push_back(Lex(LEX_ASSIGN));
         get_lex();
         B3();
     } else {
@@ -259,7 +263,7 @@ void Parser::D() {
     }
     else if (curr_type == LEX_IF) {
         get_lex();
-        E0();
+        L0();
         eq_bool();
         p2 = (int)poliz.size();
         poliz.push_back(Lex());
@@ -275,12 +279,13 @@ void Parser::D() {
             get_lex();
             D();
             poliz[p3] = Lex(POLIZ_LABEL, (int)poliz.size());
+            D();
         }
     }
     else if (curr_type == LEX_WHILE) {
         p0 = (int)poliz.size();
         get_lex();
-        E0();
+        L0();
         eq_bool();
         p1 = (int)poliz.size();
         poliz.push_back(Lex());
@@ -295,10 +300,10 @@ void Parser::D() {
         get_lex();
         if (curr_type == LEX_LPAREN) {
             get_lex();
-            E0();
+            L0();
             while (curr_type == LEX_COMMA) {
                 get_lex();
-                E0();
+                L0();
             }
             if (curr_type == LEX_RPAREN) {
                 get_lex();
@@ -313,7 +318,7 @@ void Parser::D() {
         get_lex();
         if (curr_type == LEX_ASSIGN) {
             get_lex();
-            E0();
+            L0();
             eq_type();
             poliz.push_back(Lex(LEX_ASSIGN));
         } else
@@ -324,47 +329,47 @@ void Parser::D() {
         C();
         if (curr_type == LEX_END) {
             get_lex();
-            D();
+            //D();
         } else
             throw curr_lex;
     }
 }
 //command logic
-void Parser::E0() {
-    E1();
+void Parser::L0() {
+    L1();
     if (curr_type == LEX_ASSIGN) {
         st_lex.push(curr_type);
         get_lex();
-        E1();
+        L1();
     }
 }
-void Parser::E1() {
-    E2();
+void Parser::L1() {
+    L2();
     if (curr_type == LEX_OR) {
         st_lex.push(curr_type);
         get_lex();
-        E2();
+        L2();
     }
 }
-void Parser::E2() {
-    E3();
+void Parser::L2() {
+    L3();
     while (curr_type == LEX_AND) {
         st_lex.push(curr_type);
         get_lex();
-        E3();
+        L3();
     }
 }
-void Parser::E3() {
-    E4();
+void Parser::L3() {
+    L4();
     if (curr_type == LEX_EQ || curr_type == LEX_LSS || curr_type == LEX_GTR ||
         curr_type == LEX_LEQ || curr_type == LEX_GEQ || curr_type == LEX_NEQ) {
         st_lex.push(curr_type);
         get_lex();
-        E4();
+        L4();
         check_op();
     }
 }
-void Parser::E4() {
+void Parser::L4() {
     T();
     while (curr_type == LEX_PLUS || curr_type == LEX_MINUS) {
         st_lex.push(curr_type);
@@ -415,7 +420,7 @@ void Parser::F() {
     }
     else if (curr_type == LEX_LPAREN) {
         get_lex();
-        E0();
+        L0();
         if (curr_type == LEX_RPAREN)
             get_lex();
         else
@@ -423,6 +428,7 @@ void Parser::F() {
     }
     else if (curr_type == LEX_MINUS) {
         //унарный минус, в поллиз будет закидываться собакой
+        //ну работает же, дерьмово, но работает. не трогай бяку
         get_lex();
         if (curr_type == LEX_NUM || (curr_type == LEX_ID &&
         reader.Var_table[curr_lex.show_value()].get_type() == LEX_INT)) {
